@@ -51,11 +51,16 @@
         // =======================================================
         // 【重要】本を追加するときは、ここに totalPages と readPages を書きます
         // =======================================================
-        const books = [
-            { title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"], totalPages: 949, readPages: 26 },
-            { title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"], totalPages: 59, readPages: 59 },
-            { title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"], totalPages: 1553, readPages: 0 },
-        ];
+const books = [
+{ title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"], totalPages: 949, readPages: 26 },
+{ title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"], totalPages: 59, readPages: 59 },
+{ title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"], totalPages: 1553, readPages: 0 },
+{title:"Physics, Topology, Logic and Computation:A Rosetta Stone", status:"todo",tags:["数学","圏論"], totalPages:74,readPages:0},
+{title:"Seven Sketches in Compositionality:An Invitation to Applied Category Theory",status:"todo",tags:["数学","圏論"],totalPages:353,readPages:0},
+];
+<!--
+{title:"",status:"",tags:[""],totalPages:,readPages:},
+-->
 
         // ステータスの設定
         const statusMap = {
