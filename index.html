@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>読書管理リスト</title>
+    <title>📚 マイ読書管理リスト</title>
     <style>
+        /* 最低限のシンプルなデザイン */
         body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
         h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
         .filter-section { background: #f4f4f4; padding: 15px; border-radius: 6px; margin-bottom: 30px; }
@@ -13,6 +14,8 @@
         select { padding: 6px 10px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; }
         .book-card { border-bottom: 1px solid #eee; padding: 15px 0; }
         .book-title { margin: 0 0 8px 0; font-size: 18px; }
+        /* 追加：ページ数とパーセンテージの見た目調整（少し小さめのグレー文字に） */
+        .book-progress { font-size: 14px; color: #666; font-weight: normal; margin-left: 8px; }
         .status-badge { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 4px; color: #fff; font-weight: bold; margin-right: 8px; }
         .status-reading { background: #007bff; } /* 青 */
         .status-todo { background: #6c757d; }    /* グレー */
@@ -46,15 +49,15 @@
 
     <script>
         // =======================================================
-        // 【重要】本を追加・編集するときは、ここの中身だけを書き換えます
+        // 【重要】本を追加するときは、ここに totalPages と readPages を書きます
         // =======================================================
         const books = [
-            { title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"]},
-            { title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"]},
-            { title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"]}
+            { title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"], totalPages: 240, readPages: 120 },
+            { title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"], totalPages: 350, readPages: 0 },
+            { title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"], totalPages: 180, readPages: 180 },
         ];
 
-        // ステータスの設定（表示名と色分け用クラス）
+        // ステータスの設定
         const statusMap = {
             reading: { text: "読んでいる", class: "status-reading" },
             todo: { text: "読みたい", class: "status-todo" },
@@ -69,7 +72,7 @@
             filterBooks();
         }
 
-        // 登録されている本からタグを自動抽出してボタンを作る
+        // タグフィルターの描画
         function renderTagFilters() {
             const tagContainer = document.getElementById("tag-filters");
             const allTags = new Set();
@@ -82,7 +85,7 @@
             tagContainer.innerHTML = html;
         }
 
-        // タグがクリックされた時の処理
+        // タグ選択時の処理
         function selectTag(tag) {
             selectedTag = tag;
             document.querySelectorAll(".tag").forEach(el => el.classList.remove("active"));
@@ -94,25 +97,21 @@
             filterBooks();
         }
 
-        // プルダウンとタグの状態を見てリストを再描画する
+        // リストの描画とソート
         function filterBooks() {
             const statusFilter = document.getElementById("status-filter").value;
             const bookListContainer = document.getElementById("book-list");
             
-            // 1. 絞り込み
             let filteredBooks = books.filter(book => {
                 const matchStatus = (statusFilter === "all" || book.status === statusFilter);
                 const matchTag = (selectedTag === "all" || book.tags.includes(selectedTag));
                 return matchStatus && matchTag;
             });
 
-            // ★追加：表示順の定義 (reading → todo → read の順番)
+            // 表示順の定義 (reading → todo → read)
             const statusOrder = { reading: 1, todo: 2, read: 3 };
-            
-            // ★追加：定義した順番に並び替える（ソート）
             filteredBooks.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
 
-            // 2. 画面への表示処理
             if (filteredBooks.length === 0) {
                 bookListContainer.innerHTML = "<p style='color: #999;'>該当する本がありません。</p>";
                 return;
@@ -123,9 +122,15 @@
                 const statusInfo = statusMap[book.status];
                 const tagsHtml = book.tags.map(t => `<span class="tag" onclick="selectTag('${t}')">${t}</span>`).join("");
                 
+                // ★追加：進捗パーセンテージの自動計算（四捨五入して整数に）
+                const percent = book.totalPages > 0 ? Math.round((book.readPages / book.totalPages) * 100) : 0;
+                
                 html += `
                     <div class="book-card">
-                        <h3 class="book-title">${book.title}</h3>
+                        <h3 class="book-title">
+                            ${book.title}
+                            <span class="book-progress">(${book.readPages}/${book.totalPages}, ${percent}%)</span>
+                        </h3>
                         <div>
                             <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
                             ${tagsHtml}
