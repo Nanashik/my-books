@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📚 マイ読書管理リスト</title>
+    <title>読書管理リスト</title>
     <style>
         body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
         h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -49,10 +49,9 @@
         // 【重要】本を追加・編集するときは、ここの中身だけを書き換えます
         // =======================================================
         const books = [
-            { title: "サンプル本A（3章まで読んだ）", status: "reading", tags: ["ビジネス", "自己啓発"] },
-            { title: "サンプル本B（積ん読）", status: "todo", tags: ["小説", "ミステリー"] },
-            { title: "サンプル本C（読了！）", status: "read", tags: ["技術書", "JavaScript"] },
-            { title: "サンプル本D（途中）", status: "reading", tags: ["技術書", "デザイン"] },
+            { title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"]},
+            { title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"]},
+            { title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"]}
         ];
 
         // ステータスの設定（表示名と色分け用クラス）
