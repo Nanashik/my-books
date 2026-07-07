@@ -1,1 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 マイ読書管理リスト</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .filter-section { background: #f4f4f4; padding: 15px; border-radius: 6px; margin-bottom: 30px; }
+        .filter-group { margin-bottom: 12px; }
+        .filter-group:last-child { margin-bottom: 0; }
+        select { padding: 6px 10px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; }
+        .book-card { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .book-title { margin: 0 0 8px 0; font-size: 18px; }
+        .status-badge { display: inline-block; padding: 2px 8px; font-size: 12px; border-radius: 4px; color: #fff; font-weight: bold; margin-right: 8px; }
+        .status-reading { background: #007bff; } /* 青 */
+        .status-todo { background: #6c757d; }    /* グレー */
+        .status-read { background: #28a745; }    /* 緑 */
+        .tag { display: inline-block; background: #e9ecef; padding: 2px 8px; font-size: 12px; border-radius: 4px; margin-right: 6px; cursor: pointer; color: #495057; }
+        .tag:hover { background: #dee2e6; }
+        .tag.active { background: #343a40; color: #fff; }
+    </style>
+</head>
+<body>
 
+    <h1>📚 読書管理リスト</h1>
+
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="status-filter"><strong>📖 進捗状況：</strong></label>
+            <select id="status-filter" onchange="filterBooks()">
+                <option value="all">すべて表示</option>
+                <option value="reading">🏃‍♂️ 読んでいる本</option>
+                <option value="todo">📦 読みたい本</option>
+                <option value="read">✅ 読んだ本</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <strong>🏷️ タグ：</strong>
+            <div id="tag-filters" style="display: inline-block; margin-top: 5px;"></div>
+        </div>
+    </div>
+
+    <div id="book-list"></div>
+
+    <script>
+        // =======================================================
+        // 【重要】本を追加・編集するときは、ここの中身だけを書き換えます
+        // =======================================================
+        const books = [
+            { title: "サンプル本A（3章まで読んだ）", status: "reading", tags: ["ビジネス", "自己啓発"] },
+            { title: "サンプル本B（積ん読）", status: "todo", tags: ["小説", "ミステリー"] },
+            { title: "サンプル本C（読了！）", status: "read", tags: ["技術書", "JavaScript"] },
+            { title: "サンプル本D（途中）", status: "reading", tags: ["技術書", "デザイン"] },
+        ];
+
+        // ステータスの設定（表示名と色分け用クラス）
+        const statusMap = {
+            reading: { text: "読んでいる", class: "status-reading" },
+            todo: { text: "読みたい", class: "status-todo" },
+            read: { text: "読んだ", class: "status-read" }
+        };
+
+        let selectedTag = "all";
+
+        // 初期起動
+        function init() {
+            renderTagFilters();
+            filterBooks();
+        }
+
+        // 登録されている本からタグを自動抽出してボタンを作る
+        function renderTagFilters() {
+            const tagContainer = document.getElementById("tag-filters");
+            const allTags = new Set();
+            books.forEach(book => book.tags.forEach(tag => allTags.add(tag)));
+
+            let html = `<span class="tag active" id="tag-all" onclick="selectTag('all')">すべて</span>`;
+            allTags.forEach(tag => {
+                html += `<span class="tag" id="tag-${tag}" onclick="selectTag('${tag}')">${tag}</span>`;
+            });
+            tagContainer.innerHTML = html;
+        }
+
+        // タグがクリックされた時の処理
+        function selectTag(tag) {
+            selectedTag = tag;
+            document.querySelectorAll(".tag").forEach(el => el.classList.remove("active"));
+            if (tag === 'all') {
+                document.getElementById("tag-all").classList.add("active");
+            } else {
+                document.getElementById(`tag-${tag}`).classList.add("active");
+            }
+            filterBooks();
+        }
+
+        // プルダウンとタグの状態を見てリストを再描画する
+        function filterBooks() {
+            const statusFilter = document.getElementById("status-filter").value;
+            const bookListContainer = document.getElementById("book-list");
+            
+            const filteredBooks = books.filter(book => {
+                const matchStatus = (statusFilter === "all" || book.status === statusFilter);
+                const matchTag = (selectedTag === "all" || book.tags.includes(selectedTag));
+                return matchStatus && matchTag;
+            });
+
+            if (filteredBooks.length === 0) {
+                bookListContainer.innerHTML = "<p style='color: #999;'>該当する本がありません。</p>";
+                return;
+            }
+
+            let html = "";
+            filteredBooks.forEach(book => {
+                const statusInfo = statusMap[book.status];
+                const tagsHtml = book.tags.map(t => `<span class="tag" onclick="selectTag('${t}')">${t}</span>`).join("");
+                
+                html += `
+                    <div class="book-card">
+                        <h3 class="book-title">${book.title}</h3>
+                        <div>
+                            <span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>
+                            ${tagsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            bookListContainer.innerHTML = html;
+        }
+
+        init();
+    </script>
+</body>
+</html>
