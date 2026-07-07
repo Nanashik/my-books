@@ -99,12 +99,20 @@
             const statusFilter = document.getElementById("status-filter").value;
             const bookListContainer = document.getElementById("book-list");
             
-            const filteredBooks = books.filter(book => {
+            // 1. 絞り込み
+            let filteredBooks = books.filter(book => {
                 const matchStatus = (statusFilter === "all" || book.status === statusFilter);
                 const matchTag = (selectedTag === "all" || book.tags.includes(selectedTag));
                 return matchStatus && matchTag;
             });
 
+            // ★追加：表示順の定義 (reading → todo → read の順番)
+            const statusOrder = { reading: 1, todo: 2, read: 3 };
+            
+            // ★追加：定義した順番に並び替える（ソート）
+            filteredBooks.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+            // 2. 画面への表示処理
             if (filteredBooks.length === 0) {
                 bookListContainer.innerHTML = "<p style='color: #999;'>該当する本がありません。</p>";
                 return;
