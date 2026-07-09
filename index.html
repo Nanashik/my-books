@@ -54,7 +54,7 @@
 const books = [
 {title: "Higher Tops Theory", status: "reading", tags:["数学","代数幾何"], totalPages: 949, readPages: 26 },
 {title: "An elementary illustrated introduction to simplicial sets", status: "read", tags:["数学","代数幾何","arXiv"], totalPages: 59, readPages: 59 },
-{title: "Higher Algebra", status: "todo", tags:["数学","代数幾何"], totalPages: 1553, readPages: 0 },
+{title: "Higher Algebra", status: "todo", tags:["数学","代数幾微"], totalPages: 1553, readPages: 0 },
 {title:"Physics, Topology, Logic and Computation:A Rosetta Stone", status:"todo",tags:["数学","圏論"], totalPages:74,readPages:0},
 {title:"Seven Sketches in Compositionality:An Invitation to Applied Category Theory",status:"todo",tags:["数学","圏論"],totalPages:353,readPages:0},
 {title:"Type Theory And Formal Proof",status:"todo",tags:["数学","基礎論"],totalPages:465,readPages:0},
@@ -70,7 +70,7 @@ const books = [
 {title:"A Term of Commutative Algebra",status:"todo",tags:["数学","代数幾何"],totalPages:434,readPages:0},
 {title:"The Rising Sea",status:"todo",tags:["数学","代数幾何"],totalPages:850,readPages:0},
 {title:"Real and Complex Analysis",status:"todo",tags:["数学","測度論"],totalPages:433,readPages:0},
-{title:"A Friendly introduction to Mathematical Logic",status:"",tags:["数学","基礎論"],totalPages:380,readPages:0},
+{title:"A Friendly introduction to Mathematical Logic", status: "todo", tags:["数学","基礎論"], totalPages: 380, readPages: 0 },
 {title:"An introduction to Gödel Theorems",status:"todo",tags:["数学","基礎論"],totalPages:162,readPages:0},
 {title:"Dynamics and Relativity",status:"reading",tags:["物理","力学","相対論"],totalPages:166,readPages:8},
 {title:"Electromagnetism",status:"todo",tags:["物理","電磁気学"],totalPages:126,readPages:0},
@@ -81,10 +81,6 @@ const books = [
 {title:"The Quantum Theory of Fields1",status:"todo",tags:["物理","場の量子論"],totalPages:632,readPages:0},
 {title:"INTRODUCTION TO MATHEMATICAL LOGIC",status:"todo",tags:["数学","基礎論"],totalPages:499,readPages:0},
 ];
-
-//{title:"",status:"",tags:[""],totalPages:,readPages:},
-
-//{title:"",status:"",tags:[""],totalPages:,readPages:},
 
         // ステータスの設定
         const statusMap = {
@@ -139,7 +135,12 @@ const books = [
 
             // 表示順の定義 (reading → todo → read)
             const statusOrder = { reading: 1, todo: 2, read: 3 };
-            filteredBooks.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+            filteredBooks.sort((a, b) => {
+                // ★安全対策：もしstatusが想定外（空欄など）なら、一番後ろ（99番）にする
+                const orderA = statusOrder[a.status] || 99;
+                const orderB = statusOrder[b.status] || 99;
+                return orderA - orderB;
+            });
 
             if (filteredBooks.length === 0) {
                 bookListContainer.innerHTML = "<p style='color: #999;'>該当する本がありません。</p>";
@@ -148,10 +149,10 @@ const books = [
 
             let html = "";
             filteredBooks.forEach(book => {
-                const statusInfo = statusMap[book.status];
+                // ★安全対策：もしstatusMapに存在しないstatusでもエラーにせずグレーバッジにする
+                const statusInfo = statusMap[book.status] || { text: "未設定", class: "status-todo" };
                 const tagsHtml = book.tags.map(t => `<span class="tag" onclick="selectTag('${t}')">${t}</span>`).join("");
                 
-                // ★追加：進捗パーセンテージの自動計算（四捨五入して整数に）
                 const percent = book.totalPages > 0 ? Math.round((book.readPages / book.totalPages) * 100) : 0;
                 
                 html += `
