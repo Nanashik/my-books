@@ -104,18 +104,24 @@
 
     /* --- 右側：読書ノート --- */
     .sidebar {
-      flex: 1.2;
+      flex: 1.4;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      min-width: 280px;
+      min-width: 320px;
       padding-top: 4px;
     }
 
     .section-block {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .section-title {
@@ -124,27 +130,115 @@
       color: #222222;
     }
 
+    .add-btn {
+      padding: 3px 8px;
+      font-size: 12px;
+      background-color: #1f5a7d;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .add-btn:hover {
+      background-color: #143d56;
+    }
+
     .arrow-down {
       font-size: 16px;
       color: #333333;
-      margin: -4px 0 4px 0;
+      margin: -4px 0 0 0;
     }
 
-    .side-textarea {
-      width: 100%;
-      border: 1px solid #d0d7de;
-      border-radius: 4px;
-      padding: 8px 10px;
+    /* 本のリストと入力項目デザイン */
+    .book-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .empty-msg {
+      font-size: 12px;
+      color: #888;
+      font-style: italic;
+      padding: 4px 0;
+    }
+
+    .book-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
       font-size: 13px;
-      line-height: 1.6;
-      resize: vertical;
-      outline: none;
-      background-color: #ffffff;
-      box-sizing: border-box;
     }
 
-    .side-textarea:focus {
+    .bullet {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .input-title {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 4px 6px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .input-title:focus, .input-page:focus {
       border-color: #1f5a7d;
+    }
+
+    .book-title-label {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      color: #222;
+    }
+
+    /* 数値入力エリアの上下矢印を隠して見た目をすっきりさせる */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .input-page {
+      width: 48px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 4px 2px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .paren, .slash, .unit {
+      color: #555;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+      line-height: 1;
+    }
+
+    .btn-del:hover {
+      color: #d9534f;
     }
 
     /* ボタンエリア */
@@ -227,21 +321,27 @@
 
     <!-- 右側：読書管理 -->
     <div class="sidebar">
+      <!-- 今読んでいる本 -->
       <div class="section-block">
-        <div class="section-title">今読んでいる本</div>
-        <textarea id="reading-now" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (XX/XX)&#10;・〜〜〜〜 (XX/XX)"></textarea>
+        <div class="section-header">
+          <div class="section-title">今読んでいる本</div>
+          <button type="button" class="add-btn" onclick="addBook()">+ 本を追加</button>
+        </div>
+        <div id="reading-now-list" class="book-list"></div>
       </div>
 
       <div class="arrow-down">↓</div>
 
+      <!-- 今週の目標 -->
       <div class="section-block">
         <div class="section-title">今週の目標</div>
-        <textarea id="weekly-goals" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (YYページまで)&#10;・〜〜〜〜 (YYページまで)"></textarea>
+        <div id="weekly-goals-list" class="book-list"></div>
       </div>
 
+      <!-- 今週の結果 -->
       <div class="section-block">
         <div class="section-title">今週の結果</div>
-        <textarea id="weekly-results" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (YYページまで)&#10;・〜〜〜〜 (YYページまで)"></textarea>
+        <div id="weekly-results-list" class="book-list"></div>
       </div>
     </div>
   </div>
@@ -251,39 +351,167 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'schedule_app_data';
+    const STORAGE_KEY = 'schedule_app_data_v2';
+    let books = [];
 
-    function saveData() {
-      const data = {};
-      document.querySelectorAll('.save-input').forEach(input => {
-        data[input.id] = input.value;
+    // --- 本の管理機能 ---
+    function addBook() {
+      const newBook = {
+        id: 'book_' + Date.now(),
+        title: '',
+        current: '',
+        total: '',
+        goal: '',
+        result: ''
+      };
+      books.push(newBook);
+      renderBooks();
+      saveData();
+    }
+
+    function removeBook(id) {
+      books = books.filter(b => b.id !== id);
+      renderBooks();
+      saveData();
+    }
+
+    function updateBook(id, field, value) {
+      const book = books.find(b => b.id === id);
+      if (book) {
+        book[field] = value;
+        // タイトルが入力変更されたら「目標」「結果」側のタイトル表記も即時更新
+        if (field === 'title') {
+          const goalTitleEl = document.getElementById(`goal-title-${id}`);
+          const resultTitleEl = document.getElementById(`result-title-${id}`);
+          const displayTitle = value.trim() ? value : '（タイトル未入力）';
+          if (goalTitleEl) goalTitleEl.textContent = displayTitle;
+          if (resultTitleEl) resultTitleEl.textContent = displayTitle;
+        }
+        saveData();
+      }
+    }
+
+    function renderBooks() {
+      const nowList = document.getElementById('reading-now-list');
+      const goalList = document.getElementById('weekly-goals-list');
+      const resultList = document.getElementById('weekly-results-list');
+
+      if (!nowList || !goalList || !resultList) return;
+
+      nowList.innerHTML = '';
+      goalList.innerHTML = '';
+      resultList.innerHTML = '';
+
+      if (books.length === 0) {
+        nowList.innerHTML = '<div class="empty-msg">「+ 本を追加」を押して追加</div>';
+        goalList.innerHTML = '<div class="empty-msg">本が未登録です</div>';
+        resultList.innerHTML = '<div class="empty-msg">本が未登録です</div>';
+        return;
+      }
+
+      books.forEach(book => {
+        const displayTitle = book.title.trim() ? book.title : '（タイトル未入力）';
+
+        // 1. 今読んでいる本
+        const nowRow = document.createElement('div');
+        nowRow.className = 'book-item';
+        nowRow.innerHTML = `
+          <span class="bullet">・</span>
+          <input type="text" class="input-title" placeholder="本のタイトル" value="${escapeHtml(book.title)}" oninput="updateBook('${book.id}', 'title', this.value)">
+          <span class="paren">(</span>
+          <input type="number" class="input-page" placeholder="既読" value="${escapeHtml(book.current)}" oninput="updateBook('${book.id}', 'current', this.value)">
+          <span class="slash">/</span>
+          <input type="number" class="input-page" placeholder="全体" value="${escapeHtml(book.total)}" oninput="updateBook('${book.id}', 'total', this.value)">
+          <span class="paren">)</span>
+          <button type="button" class="btn-del" title="削除" onclick="removeBook('${book.id}')">×</button>
+        `;
+        nowList.appendChild(nowRow);
+
+        // 2. 今週の目標
+        const goalRow = document.createElement('div');
+        goalRow.className = 'book-item';
+        goalRow.innerHTML = `
+          <span class="bullet">・</span>
+          <span id="goal-title-${book.id}" class="book-title-label">${escapeHtml(displayTitle)}</span>
+          <span class="paren">(</span>
+          <input type="number" class="input-page" placeholder="目標" value="${escapeHtml(book.goal)}" oninput="updateBook('${book.id}', 'goal', this.value)">
+          <span class="unit">ページまで)</span>
+        `;
+        goalList.appendChild(goalRow);
+
+        // 3. 今週の結果
+        const resultRow = document.createElement('div');
+        resultRow.className = 'book-item';
+        resultRow.innerHTML = `
+          <span class="bullet">・</span>
+          <span id="result-title-${book.id}" class="book-title-label">${escapeHtml(displayTitle)}</span>
+          <span class="paren">(</span>
+          <input type="number" class="input-page" placeholder="結果" value="${escapeHtml(book.result)}" oninput="updateBook('${book.id}', 'result', this.value)">
+          <span class="unit">ページまで)</span>
+        `;
+        resultList.appendChild(resultRow);
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    // --- 自動保存 & 復元機能 ---
+    function saveData() {
+      const scheduleData = {};
+      document.querySelectorAll('.save-input').forEach(input => {
+        scheduleData[input.id] = input.value;
+      });
+
+      const payload = {
+        schedule: scheduleData,
+        books: books
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     }
 
     function loadData() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return;
       try {
-        const data = JSON.parse(saved);
-        Object.keys(data).forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.value = data[id];
-        });
+        const payload = JSON.parse(saved);
+        if (payload.schedule) {
+          Object.keys(payload.schedule).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = payload.schedule[id];
+          });
+        }
+        if (Array.isArray(payload.books)) {
+          books = payload.books;
+          renderBooks();
+        }
       } catch (e) {
         console.error('データの復元に失敗しました', e);
       }
     }
 
     function clearAllData() {
-      if (confirm('すべての入力内容をクリアしますか？')) {
+      if (confirm('すべての入力内容（時間割・読書ノート）をクリアしますか？')) {
         localStorage.removeItem(STORAGE_KEY);
         document.querySelectorAll('.save-input').forEach(input => input.value = '');
+        books = [];
+        renderBooks();
       }
     }
 
+    // イベント設定
     document.addEventListener('DOMContentLoaded', () => {
       loadData();
+      if (books.length === 0) {
+        renderBooks(); // 初期描画
+      }
       document.querySelectorAll('.save-input').forEach(input => {
         input.addEventListener('input', saveData);
       });
