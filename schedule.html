@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>週間時間割 & 読書管理</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background-color: #ffffff;
+      color: #333333;
+    }
+
+    /* 上部ナビゲーションバー */
+    .top-nav {
+      max-width: 1250px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .back-link {
+      color: #1f5a7d;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      gap: 32px;
+      max-width: 1250px;
+      margin: 0 auto;
+      align-items: flex-start;
+    }
+
+    /* --- 左側：時間割テーブル --- */
+    .schedule-container {
+      flex: 3.2;
+    }
+
+    table.schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    table.schedule-table th, 
+    table.schedule-table td {
+      border: 1.5px solid #ffffff;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0;
+    }
+
+    table.schedule-table th {
+      background-color: #1f5a7d;
+      color: #ffffff;
+      font-weight: bold;
+      padding: 10px 4px;
+      font-size: 15px;
+    }
+
+    table.schedule-table td.time-col {
+      background-color: #d1dbe4; 
+      color: #222222;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 4px;
+      width: 110px;
+      white-space: nowrap;
+    }
+
+    table.schedule-table td.cell {
+      background-color: #eef2f5;
+      height: 52px;
+    }
+
+    table.schedule-table td.cell textarea {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      resize: none;
+      padding: 6px;
+      font-size: 12px;
+      line-height: 1.3;
+      color: #222222;
+      outline: none;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    /* --- 右側：読書ノート --- */
+    .sidebar {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 280px;
+      padding-top: 4px;
+    }
+
+    .section-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #222222;
+    }
+
+    .arrow-down {
+      font-size: 16px;
+      color: #333333;
+      margin: -4px 0 4px 0;
+    }
+
+    .side-textarea {
+      width: 100%;
+      border: 1px solid #d0d7de;
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      background-color: #ffffff;
+      box-sizing: border-box;
+    }
+
+    .side-textarea:focus {
+      border-color: #1f5a7d;
+    }
+
+    /* ボタンエリア */
+    .controls {
+      max-width: 1250px;
+      margin: 16px auto 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+      cursor: pointer;
+      color: #333;
+    }
+
+    .btn:hover {
+      background-color: #e9ecef;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- トップへ戻るナビゲーション -->
+  <div class="top-nav">
+    <a href="index.html" class="back-link">← トップへ戻る</a>
+  </div>
+
+  <div class="container">
+    <!-- 左側：時間割 -->
+    <div class="schedule-container">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th style="width: 110px;"></th>
+            <th>月</th>
+            <th>火</th>
+            <th>水</th>
+            <th>木</th>
+            <th>金</th>
+            <th>土</th>
+            <th>日</th>
+          </tr>
+        </thead>
+        <tbody>
+          <script>
+            const timeSlots = [
+              "5:00-6:00",
+              "6:15-7:15",
+              "7:30-8:30",
+              "8:45-10:15",
+              "10:30-12:00",
+              "13:00-14:30",
+              "14:45-16:15",
+              "16:30-18:00",
+              "19:00-20:00"
+            ];
+
+            timeSlots.forEach((time, rowIndex) => {
+              document.write(`
+                <tr>
+                  <td class="time-col">${time}</td>
+                  ${[0, 1, 2, 3, 4, 5, 6].map(colIndex => `
+                    <td class="cell">
+                      <textarea id="cell-${rowIndex}-${colIndex}" class="save-input"></textarea>
+                    </td>
+                  `).join('')}
+                </tr>
+              `);
+            });
+          </script>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 右側：読書管理 -->
+    <div class="sidebar">
+      <div class="section-block">
+        <div class="section-title">今読んでいる本</div>
+        <textarea id="reading-now" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (XX/XX)&#10;・〜〜〜〜 (XX/XX)"></textarea>
+      </div>
+
+      <div class="arrow-down">↓</div>
+
+      <div class="section-block">
+        <div class="section-title">今週の目標</div>
+        <textarea id="weekly-goals" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (YYページまで)&#10;・〜〜〜〜 (YYページまで)"></textarea>
+      </div>
+
+      <div class="section-block">
+        <div class="section-title">今週の結果</div>
+        <textarea id="weekly-results" class="side-textarea save-input" rows="4" placeholder="・〜〜〜〜 (YYページまで)&#10;・〜〜〜〜 (YYページまで)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" onclick="clearAllData()">すべての入力をクリア</button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'schedule_app_data';
+
+    function saveData() {
+      const data = {};
+      document.querySelectorAll('.save-input').forEach(input => {
+        data[input.id] = input.value;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        Object.keys(data).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = data[id];
+        });
+      } catch (e) {
+        console.error('データの復元に失敗しました', e);
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('すべての入力内容をクリアしますか？')) {
+        localStorage.removeItem(STORAGE_KEY);
+        document.querySelectorAll('.save-input').forEach(input => input.value = '');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      document.querySelectorAll('.save-input').forEach(input => {
+        input.addEventListener('input', saveData);
+      });
+    });
+  </script>
+
+</body>
+</html>
