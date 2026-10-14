@@ -172,9 +172,12 @@
       font-size: 13px;
     }
 
+    /* 番号（ラベル）用スタイル */
     .bullet {
       font-weight: bold;
-      color: #333;
+      color: #1f5a7d;
+      min-width: 18px;
+      font-size: 13px;
     }
 
     .input-title {
@@ -201,7 +204,7 @@
       color: #222;
     }
 
-    /* 数値入力エリアの上下矢印を隠して見た目をすっきりさせる */
+    /* 数値入力エリアの上下矢印を隠す */
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button {
       -webkit-appearance: none;
@@ -379,7 +382,6 @@
       const book = books.find(b => b.id === id);
       if (book) {
         book[field] = value;
-        // タイトルが入力変更されたら「目標」「結果」側のタイトル表記も即時更新
         if (field === 'title') {
           const goalTitleEl = document.getElementById(`goal-title-${id}`);
           const resultTitleEl = document.getElementById(`result-title-${id}`);
@@ -409,14 +411,15 @@
         return;
       }
 
-      books.forEach(book => {
+      books.forEach((book, index) => {
         const displayTitle = book.title.trim() ? book.title : '（タイトル未入力）';
+        const labelNumber = `${index + 1}.`;
 
         // 1. 今読んでいる本
         const nowRow = document.createElement('div');
         nowRow.className = 'book-item';
         nowRow.innerHTML = `
-          <span class="bullet">・</span>
+          <span class="bullet">${labelNumber}</span>
           <input type="text" class="input-title" placeholder="本のタイトル" value="${escapeHtml(book.title)}" oninput="updateBook('${book.id}', 'title', this.value)">
           <span class="paren">(</span>
           <input type="number" class="input-page" placeholder="既読" value="${escapeHtml(book.current)}" oninput="updateBook('${book.id}', 'current', this.value)">
@@ -431,7 +434,7 @@
         const goalRow = document.createElement('div');
         goalRow.className = 'book-item';
         goalRow.innerHTML = `
-          <span class="bullet">・</span>
+          <span class="bullet">${labelNumber}</span>
           <span id="goal-title-${book.id}" class="book-title-label">${escapeHtml(displayTitle)}</span>
           <span class="paren">(</span>
           <input type="number" class="input-page" placeholder="目標" value="${escapeHtml(book.goal)}" oninput="updateBook('${book.id}', 'goal', this.value)">
@@ -443,7 +446,7 @@
         const resultRow = document.createElement('div');
         resultRow.className = 'book-item';
         resultRow.innerHTML = `
-          <span class="bullet">・</span>
+          <span class="bullet">${labelNumber}</span>
           <span id="result-title-${book.id}" class="book-title-label">${escapeHtml(displayTitle)}</span>
           <span class="paren">(</span>
           <input type="number" class="input-page" placeholder="結果" value="${escapeHtml(book.result)}" oninput="updateBook('${book.id}', 'result', this.value)">
@@ -510,7 +513,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadData();
       if (books.length === 0) {
-        renderBooks(); // 初期描画
+        renderBooks();
       }
       document.querySelectorAll('.save-input').forEach(input => {
         input.addEventListener('input', saveData);
